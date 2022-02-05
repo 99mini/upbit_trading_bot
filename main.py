@@ -1,16 +1,44 @@
-# This is a sample Python script.
+import pyupbit
 
-# Press Shift+F10 to execute it or replace it with your code.
-# Press Double Shift to search everywhere for classes, files, tool windows, actions, and settings.
+f = open("ym_api_key.txt")
+lines = f.readlines()
+ACCESS_KEY = lines[0].strip()
+SECRET_KEY = lines[1].strip()
+f.close()
+
+INTERVAL = 'minutes60'
+
+# upbit class instance
+upbit = pyupbit.Upbit(ACCESS_KEY, SECRET_KEY)
 
 
-def print_hi(name):
-    # Use a breakpoint in the code line below to debug your script.
-    print(f'Hi, {name}')  # Press Ctrl+F8 to toggle the breakpoint.
+
+# 시장가 주문
+# resp = upbit.buy_market_order(ticker="KRW-XRP",price=10000)
+# pprint.pprint(resp)
+
+# 시장가 매도
+# xrp_balance = upbit.get_balance(ticker="KRW-XRP")
+# upbit.sell_market_order(ticker="KRW-XRP", volume=xrp_balance)
+
+# KRW 로 거래되는 모든 티커 리스트
+# tickers = pyupbit.get_tickers(fiat="KRW")
+
+# 캔들 정보
+# df = pyupbit.get_ohlcv(ticker="KRW-BTC", interval="minute60")
+
+# 현재가 정보
+# price_dict = pyupbit.get_current_price(tickers)
 
 
-# Press the green button in the gutter to run the script.
-if __name__ == '__main__':
-    print_hi('upbit trading bot')
 
-# See PyCharm help at https://www.jetbrains.com/help/pycharm/
+
+
+# while True:
+#     now = datetime.datetime.now()
+#
+#     price_dict = pyupbit.get_current_price(tickers)
+#     price = price_dict[ticker]
+#     print(now, price)
+#
+#     time.sleep(1)

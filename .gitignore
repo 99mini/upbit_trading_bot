@@ -1,0 +1,10 @@
+## gitignore ##
+
+# api key
+ym_api_key.txt
+
+# test file
+test.*
+
+# config file
+config.py
