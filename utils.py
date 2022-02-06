@@ -1,10 +1,12 @@
-# 목표가 계산
-import numpy as np
-import talib as ta
-import requests
+import json
+import time
 
+import numpy as np
+import requests
+import talib as ta
+
+import config
 from config import *
-from main import *
 
 
 # 목표가 계산
@@ -69,12 +71,36 @@ def calc_pnl(order_price, cur_price):
 
 # 매수 주문
 def buy_order(ticker, price):
-    upbit.buy_market_order(ticker=ticker, price=price)
+    try:
+        volume = 0
+        buy_price = 0
+        position_type = None
+
+        resp = upbit.buy_market_order(ticker=ticker, price=price)
+        time.sleep(1)
+        order = upbit.get_order(resp['uuid'])
+
+        if order is not None and len(order['trades']) > 0:
+            volume = upbit.get_balance(ticker)
+            buy_price = upbit.get_avg_buy_price(ticker)
+            position_type = 'buy'
+
+        return volume, buy_price, position_type
+    except Exception as e:
+        print("buy_order", e)
 
 
 # 매도 주문
 def sell_order(ticker, volume):
-    upbit.sell_market_order(ticker=ticker, volume=volume)
+    try:
+        resp = upbit.sell_market_order(ticker=ticker, volume=volume)
+        time.sleep(1)
+        order = upbit.get_order(resp['uuid'])
+
+        if order is not None and len(order['trades']) > 0:
+            pass
+    except Exception as e:
+        print("sell_order", e)
 
 
 # 텔레그램 메세지 보내기
@@ -85,3 +111,35 @@ def telegramMassageBot(msg):
         requests.get(teleurl, params=params)
     except Exception as e:
         print('telegram error: ', e)
+
+
+# 거래대금 상위 코인 고르기
+def select_top_trade_price_coins():
+    try:
+        URL = config.all_ticker_url
+
+        ticker_volume_dict = []
+
+        tickers = pyupbit.get_tickers(fiat="KRW")
+        symbols = ''
+        for ticker in tickers:
+            symbols += ticker + ","
+        symbols = symbols[:-1]
+
+        params = {'markets': symbols}
+        res = requests.get(URL, params=params)
+        datas = json.loads(res.text)
+        for data in datas:
+            ticker_volume_dict.append(
+                {
+                    'ticker': data["market"],
+                    'price24': data["acc_trade_price_24h"]
+                }
+            )
+
+        ticker_volume_dict.sort(key=lambda x: -x['price24'])
+        top_tickers = ticker_volume_dict[:10]
+        top_tickers = [x['ticker'] for x in top_tickers]
+        return top_tickers
+    except Exception as e:
+        print("select top trade price coins: ", e)
