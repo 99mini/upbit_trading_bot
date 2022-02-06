@@ -2,6 +2,7 @@ import datetime
 import math
 import time
 
+import db_helper
 import utils
 from config import *
 
@@ -36,8 +37,13 @@ def exec_volatility(ticker):
         cur_price = pyupbit.get_current_price(ticker=ticker)
 
         # 목표 가격
-        # TODO 매 호출마다 목표 가격 정하지 않고 데이터베이스에 저장
-        target = utils.calc_target(ticker=ticker)
+        table = 'target_table'
+        row = db_helper.select_db(table=table, ticker=ticker)
+        if row:
+            target = row['target']
+            op_mode = row['op_mode']
+        else:
+            return
 
         # btc sma 20 이격률
         btc_sma20_sep_rate = utils.calc_btc_sma20_sep_rate()
@@ -45,8 +51,10 @@ def exec_volatility(ticker):
         # rsi14
         rsi14 = utils.calc_rsi14(ticker)
 
-
         print(now)
+        # TODO position table에 매수 시 티커 타입 시간 가격 볼륨 저장
+        # TODO position table에 매도 시 티커 타입 시간 가격 볼륨 저장
+        # TODO postion dict를 pyupbit에서 balance에서 가져와 채우기
         if position['type'] is None:
             print(
                 'ticker:', ticker,
@@ -66,17 +74,18 @@ def exec_volatility(ticker):
                 "BTC 20일선 이격률:", btc_sma20_sep_rate,
                 "op_mode:", op_mode
             )
-        print("#"*100)
+        print("#" * 100)
 
         # 목표가 갱신
-        # TODO 캔들 interval 기준으로 목표가 갱신 후 목표가 데이터베이스에 저장
         if position['type'] is None and now.minute == 0 and (10 <= now.second < 20):
             print("=" * 100)
             print("목표가 갱신")
             target = utils.calc_target(ticker)
-            op_mode = True
+            op_mode = 1
 
-            time.sleep(10)
+            # update db
+            db_helper.update_target_db(ticker=ticker, target=target, op_mode=op_mode)
+            return
         # 포지션 없을 경우
         if op_mode and position['type'] is None:
             # rsi14가 70이상이면 포지션 진입 X

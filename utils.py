@@ -114,7 +114,7 @@ def telegramMassageBot(msg):
 
 
 # 거래대금 상위 코인 고르기
-def select_top_trade_price_coins():
+def select_top_trade_price_coins(count):
     try:
         URL = config.all_ticker_url
 
@@ -138,7 +138,7 @@ def select_top_trade_price_coins():
             )
 
         ticker_volume_dict.sort(key=lambda x: -x['price24'])
-        top_tickers = ticker_volume_dict[:10]
+        top_tickers = ticker_volume_dict[:count]
         top_tickers = [x['ticker'] for x in top_tickers]
         return top_tickers
     except Exception as e:
