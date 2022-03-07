@@ -6,5 +6,5 @@ ym_api_key.txt
 # test file
 test.*
 
-# config file
-config.py
+# telegram api key file
+telegram_api_key.py
